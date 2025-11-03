@@ -23,7 +23,7 @@ $result = mysqli_query($conn, $query);
     <h1>Transform your spaces with exquisite ceiling designs</h1>
     <p>Connect with verified contractors for professional gypsum and false ceiling services. Quality craftsmanship, transparent pricing, and reliable service guaranteed.</p>
     <div class="hero-buttons">
-      <button><a href="services.php">Browse Services</a></button>
+      <button><a href="services.php">Browse Services </a></button>
       <button>Find Contractors</button>
     </div>
   </section>
@@ -129,41 +129,10 @@ $result = mysqli_query($conn, $query);
           ?>
         </div>
       </section>
+    </div>
+   </section> 
+      <?php include('./includes/footer.php'); ?>
 
-
-      <!-- <div class="customer-card">
-        <img src="https://via.placeholder.com/80" alt="">
-        <h4>Kishor Sedai</h4>
-        <p>Gypsum & POP Specialist</p>
-        <div class="star">⭐ 4.9 (234 reviews)</div>
-        <p>Experience: 8+ years</p>
-        <p>Projects: 450+</p>
-        <button>View Profile</button>
-      </div>
-
-      <div class="customer-card">
-        <img src="https://via.placeholder.com/80" alt="">
-        <h4>Kishor Sedai</h4>
-        <p>Gypsum & POP Specialist</p>
-        <div class="star">⭐ 4.9 (234 reviews)</div>
-        <p>Experience: 8+ years</p>
-        <p>Projects: 450+</p>
-        <button>View Profile</button>
-      </div>
-
-      <div class="customer-card">
-        <img src="https://via.placeholder.com/80" alt="">
-        <h4>Kishor Sedai</h4>
-        <p>Gypsum & POP Specialist</p>
-        <div class="star">⭐ 4.9 (234 reviews)</div>
-        <p>Experience: 8+ years</p>
-        <p>Projects: 450+</p>
-        <button>View Profile</button>
-      </div>
-    </div> -->
-      <!-- </section> -->
-
-      <?php include('/includes/footer.php'); ?>
 </body>
 
 </html>

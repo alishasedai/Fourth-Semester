@@ -66,6 +66,12 @@ session_start();
       border: 2px solid #eee;
     }
 
+    .names{
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
     .contractor-card h3 {
       font-size: 17px;
       font-weight: 600;
@@ -97,14 +103,14 @@ session_start();
     .project-images {
       display: flex;
       justify-content: center;
-      gap: 10px;
+      gap: 20px;
       margin-bottom: 15px;
       flex-wrap: wrap;
     }
 
     .project-images img {
-      width: 120px;
-      height: 90px;
+      width: 150px;
+      height: 120px;
       border-radius: 6px;
       object-fit: cover;
       border: 1px solid #ddd;
@@ -168,9 +174,11 @@ session_start();
           <img src="uploads/<?= htmlspecialchars($row['profile_photo']); ?>" class="profile" alt="Contractor">
 
           <!-- Contractor Name -->
-          <h3><?= htmlspecialchars($row['contractor_name']); ?></h3>
+          <div class="names">
+            <h3><?= htmlspecialchars($row['contractor_name']); ?></h3>
 
-          <div class="rating">⭐ 4.9 <span>156 reviews</span></div>
+            <div class="rating">⭐ 4.9 <span>156 reviews</span></div>
+          </div>
 
           <!-- Contractor Description -->
           <p><?= htmlspecialchars($row['description']); ?></p>

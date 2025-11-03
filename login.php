@@ -58,7 +58,7 @@ if (isset($_POST['submit'])) {
   <div class="container">
     <button class="back-btn"><a href="index.php">← Back To Home</a></button>
 
-    <form class="form-box" method="POST" action="">
+    <form class="form-box" method="POST" action="" onsubmit="validateLoginForm(event)">
       <h2>Welcome Back</h2>
       <p class="subtitle">Sign in to your Gypsum Services account</p>
 
