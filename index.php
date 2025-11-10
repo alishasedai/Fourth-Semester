@@ -13,6 +13,12 @@ $result = mysqli_query($conn, $query);
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gypsum Ceiling Services</title>
   <link rel="stylesheet" href="./css/style.css">
+  <style> 
+    .customer-card button a{
+      color: white;
+      text-decoration: none;
+    }
+  </style>
 
 </head>
 
@@ -118,7 +124,7 @@ $result = mysqli_query($conn, $query);
                 <p><?= $description ?></p>
                 <div class="star">⭐ 4.9 (234 reviews)</div>
                 <p><strong>Experience:</strong> <?= $experience ?> years</p>
-                <button onclick="window.location.href='contractor_profile.php?id=<?= $id ?>'">View Profile</button>
+                <button onclick="window.location.href='contractor_profile.php?id=<?= $id ?>'"> <a href="contractor_profile.php">View Profile</a></button>
               </div>
 
           <?php
@@ -130,8 +136,8 @@ $result = mysqli_query($conn, $query);
         </div>
       </section>
     </div>
-   </section> 
-      <?php include('./includes/footer.php'); ?>
+  </section>
+  <?php include('./includes/footer.php'); ?>
 
 </body>
 

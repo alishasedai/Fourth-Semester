@@ -1,7 +1,7 @@
 <?php
 $servername = "localhost";
 $username = "root";
-$password = "apple";
+$password = "";
 $dbname = "portals";
 
 // Create connection

@@ -11,6 +11,9 @@ session_start();
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Browse Our Services - Gypsum Portals</title>
   <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -30,9 +33,50 @@ session_start();
     }
 
     .hero p {
-      color: #777;
+      color: #000;
       font-size: 15px;
       margin-top: 5px;
+    }
+
+    .search {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 21px;
+
+    }
+
+    .search .s {
+      width: 680px;
+      height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      background-color: #000;
+      /* background-color: #1aaeaa; */
+      border: 1px solid black;
+      border-radius: 10px;
+    }
+.s div button{
+ background-color: #000;
+ 
+}
+    .s div button i {
+      font-size: 27px;
+      color: #fff;
+    }
+
+    .search input {
+      width: 600px;
+      height: 47px;
+      border-radius: 10px;
+      background-color: #fff;
+      margin-left: -30px;
+
     }
 
     .contractor-grid {
@@ -66,12 +110,13 @@ session_start();
       border: 2px solid #eee;
     }
 
-    .names{
+    .names {
       display: flex;
       gap: 30px;
       justify-content: center;
       margin-bottom: 20px;
     }
+
     .contractor-card h3 {
       font-size: 17px;
       font-weight: 600;
@@ -130,6 +175,11 @@ session_start();
       transition: 0.2s ease;
     }
 
+    .card-buttons button a {
+      color: white;
+      text-decoration: none;
+    }
+
     .card-buttons .view {
       background: #000;
       color: #fff;
@@ -157,14 +207,38 @@ session_start();
     <h1>Find Expert Contractors</h1>
     <p>Connect with verified ceiling specialists in your area</p>
   </section>
+  <section class="search">
 
+    <form action="" method="GET">
+      <label for="">Search your desired services</label>
+
+      <div class="s">
+        <input type="text" name="search_service" value="<?php if(isset($_GET['search_service'])) {echo $_GET['search_service']; } ?>" placeholder="search services">
+        <div class="search_icon">
+          <button><i class="fa-solid fa-magnifying-glass"></i></button>
+
+        </div>
+      </div>
+    </form>
+  </section>
   <section class="contractor-grid">
     <?php
+  if (isset($_GET['search_service'])) {
+    $filter_values = $_GET['search_service'];
+
+    $sql = "SELECT cd.*, u.name AS contractor_name 
+            FROM contractor_details cd
+            JOIN users u ON cd.user_id = u.id
+            WHERE CONCAT(cd.services, cd.description) LIKE '%$filter_values%'
+            ORDER BY cd.created_at DESC";
+  } else {
     $sql = "SELECT cd.*, u.name AS contractor_name 
             FROM contractor_details cd
             JOIN users u ON cd.user_id = u.id
             ORDER BY cd.created_at DESC";
-    $result = mysqli_query($conn, $sql);
+  }
+
+  $result = mysqli_query($conn, $sql);
 
     if (mysqli_num_rows($result) > 0):
       while ($row = mysqli_fetch_assoc($result)):
@@ -196,12 +270,13 @@ session_start();
             } else {
               echo '<p style="color:#888; font-size:13px;">No project photos uploaded yet.</p>';
             }
+    
             ?>
           </div>
 
           <!-- Buttons -->
           <div class="card-buttons">
-            <button class="view">View Profile</button>
+            <button class="view"><a href="contractor_profile.php">View Profile</a></button>
             <button class="contact">Contact</button>
           </div>
         </div>
@@ -209,6 +284,9 @@ session_start();
     else: ?>
       <p style="text-align:center; color:#777;">No contractors available yet.</p>
     <?php endif; ?>
+    
+ 
+  
   </section>
 
   <?php include('./includes/footer.php'); ?>
