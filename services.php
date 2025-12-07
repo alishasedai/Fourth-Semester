@@ -292,10 +292,12 @@ session_start();
             </button>
 
             <button class="contact">
-              <a style="color:#333;" href="booking.php?contractor_id=<?= $row['user_id']; ?>&service=<?= urlencode($row['service_name']); ?>">
+              <a style="color:#333;"
+                href="book.php?id=<?= $row['user_id']; ?>&service=<?= urlencode($row['service_name']); ?>">
                 Book Now
               </a>
             </button>
+
           </div>
 
         </div>

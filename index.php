@@ -62,39 +62,13 @@ $result = mysqli_query($conn, $query);
       <div class="card"><img src="https://via.placeholder.com/300x230" alt="">
         <div class="card-content">
           <h4>Gypsum False Ceiling</h4>
-          <p>Modern gypsum board ceiling installations with perfect finishing</p><button>Book Now</button>
+          <p>Modern gypsum board ceiling installations with perfect finishing</p>
+          <a href="services.php?service=Gypsum False Ceiling">
+            <button>View Contractors</button>
+          </a>
         </div>
       </div>
-      <div class="card"><img src="https://via.placeholder.com/300x230" alt="">
-        <div class="card-content">
-          <h4>Gypsum False Ceiling</h4>
-          <p>Modern gypsum board ceiling installations with perfect finishing</p><button>Book Now</button>
-        </div>
-      </div>
-      <div class="card"><img src="https://via.placeholder.com/300x230" alt="">
-        <div class="card-content">
-          <h4>Gypsum False Ceiling</h4>
-          <p>Modern gypsum board ceiling installations with perfect finishing</p><button>Book Now</button>
-        </div>
-      </div>
-      <div class="card"><img src="https://via.placeholder.com/300x230" alt="">
-        <div class="card-content">
-          <h4>Gypsum False Ceiling</h4>
-          <p>Modern gypsum board ceiling installations with perfect finishing</p><button>Book Now</button>
-        </div>
-      </div>
-      <div class="card"><img src="https://via.placeholder.com/300x230" alt="">
-        <div class="card-content">
-          <h4>Gypsum False Ceiling</h4>
-          <p>Modern gypsum board ceiling installations with perfect finishing</p><button>Book Now</button>
-        </div>
-      </div>
-      <div class="card"><img src="https://via.placeholder.com/300x230" alt="">
-        <div class="card-content">
-          <h4>Gypsum False Ceiling</h4>
-          <p>Modern gypsum board ceiling installations with perfect finishing</p><button>Book Now</button>
-        </div>
-      </div>
+     
     </div>
   </section>
 
@@ -148,27 +122,3 @@ $result = mysqli_query($conn, $query);
 </body>
 
 </html>
-<!--
-Hi ChatGPT, yesterday we were working on my BCA project for a Gypsum Services portal. I was creating a booking system with customer and contractor dashboards.
-Here are the files I have so far (uploaded previously):
-
-booking.php
-
-customer_dashboard.php
-
-contractor_dashboard.php
-
-contractor_bookings.php
-
-I want to:
-
-Add a booking_time column to my bookings table in MySQL.
-
-Update booking.php form so customers can select date and time.
-
-Update the contractor_bookings.php to show date and time correctly without errors.
-
-Show the booking status (pending, confirmed, rejected, completed) in the contractor dashboard.
-
-Please help me modify the code and SQL queries to implement this. My database table structure is as I uploaded previously (booking table has id, customer_id, contractor_id, service, date, notes, status, photos).
-        -->
