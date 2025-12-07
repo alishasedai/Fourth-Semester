@@ -9,13 +9,13 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'super_admin') {
 }
 
 // Fetch stats
-$total_customers = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='customer'"))['total'];
-$total_contractors = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM users WHERE role='contractor'"))['total'];
-$total_bookings = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) as total FROM bookings"))['total'];
+$total_customers = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM users WHERE role='customer'"))['total'];
+$total_contractors = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM users WHERE role='contractor'"))['total'];
+$total_bookings = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) AS total FROM bookings"))['total'];
 
 // Bookings per contractor
 $bookings_per_contractor = mysqli_query($conn, "
-    SELECT c.name, COUNT(b.id) as total_bookings 
+    SELECT c.name, COUNT(b.id) AS total_bookings 
     FROM users c 
     LEFT JOIN bookings b ON c.id = b.contractor_id 
     WHERE c.role='contractor'
@@ -32,8 +32,9 @@ $all_bookings = mysqli_query($conn, "
     ORDER BY b.created_at DESC
 ");
 
+// Reviews
 $reviews = mysqli_query($conn, "
-    SELECT r.*, 
+    SELECT r.rating, r.comment AS review_text, r.created_at, 
            c.name AS customer_name, 
            ctr.name AS contractor_name 
     FROM reviews r
@@ -41,8 +42,8 @@ $reviews = mysqli_query($conn, "
     JOIN users ctr ON r.contractor_id = ctr.id
     ORDER BY r.created_at DESC
 ");
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -50,122 +51,136 @@ $reviews = mysqli_query($conn, "
     <meta charset="UTF-8">
     <title>Super Admin Dashboard</title>
 
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* ------------------- BASIC ------------------- */
-        body {
-            font-family: 'Poppins', sans-serif;
+        /* ---------- GENERAL ---------- */
+        * {
             margin: 0;
-            background: #eef1f7;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
             color: #333;
         }
 
-        /* ------------------- NAVBAR ------------------- */
+        a {
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: auto;
+            padding: 30px;
+        }
+
+        /* ---------- NAVBAR ---------- */
         .navbar {
-            background: #1f2937;
+            background: linear-gradient(90deg, #4f46e5, #6366f1);
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             color: #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .navbar h2 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 600;
+            font-size: 24px;
+            font-weight: 700;
         }
 
         .navbar a {
-            color: #fff;
-            padding: 8px 18px;
+            padding: 8px 20px;
             background: #ef4444;
             border-radius: 6px;
-            text-decoration: none;
             font-weight: 500;
+            transition: 0.3s;
         }
 
         .navbar a:hover {
             background: #dc2626;
         }
 
-        /* ------------------- CONTAINER ------------------- */
-        .container {
-            padding: 30px;
-        }
-
+        /* ---------- HEADER ---------- */
         h1 {
-            font-size: 28px;
-            font-weight: 600;
-            color: #111827;
+            font-size: 32px;
             margin-bottom: 25px;
+            color: #1f2937;
         }
 
-        /* ------------------- CARDS ------------------- */
+        /* ---------- CARDS ---------- */
         .cards {
             display: flex;
             gap: 25px;
+            flex-wrap: wrap;
             margin-bottom: 40px;
         }
 
         .card {
             flex: 1;
-            background: #fff;
+            min-width: 220px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #fff;
             padding: 25px;
             border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             transition: 0.3s;
         }
 
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.15);
         }
 
         .card h3 {
             font-size: 18px;
-            color: #6b7280;
-            margin: 0 0 8px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            opacity: 0.9;
         }
 
         .card p {
             font-size: 30px;
-            font-weight: 600;
-            color: #111827;
-            margin: 0;
+            font-weight: 700;
         }
 
-        /* ------------------- TABLE DESIGN ------------------- */
+        /* ---------- TABLES ---------- */
         table {
             width: 100%;
             border-collapse: collapse;
             background: #fff;
-            border-radius: 15px;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
             margin-bottom: 40px;
         }
 
         th {
-            background: #111827;
+            background: #4f46e5;
             color: #fff;
             padding: 14px;
-            font-size: 15px;
+            font-weight: 600;
             text-align: left;
         }
 
         td {
             padding: 12px 14px;
-            font-size: 14px;
             border-bottom: 1px solid #e5e7eb;
         }
 
         tr:hover {
-            background: #f9fafb;
+            background: #f3f4f6;
+            transition: 0.2s;
         }
 
-        /* ------------------- STATUS COLORS ------------------- */
+        /* ---------- STATUS COLORS ---------- */
         .status-pending {
             color: #d97706;
             font-weight: 600;
@@ -186,13 +201,26 @@ $reviews = mysqli_query($conn, "
             font-weight: 600;
         }
 
+        /* ---------- SECTION TITLES ---------- */
         h2.section-title {
             font-size: 22px;
-            color: #1f2937;
             margin: 25px 0 10px;
+            color: #1f2937;
+            border-left: 4px solid #4f46e5;
+            padding-left: 10px;
+        }
+
+        /* ---------- REVIEWS ---------- */
+        .review-stars {
+            color: #fbbf24;
+        }
+
+        @media(max-width:768px) {
+            .cards {
+                flex-direction: column;
+            }
         }
     </style>
-
 </head>
 
 <body>
@@ -200,7 +228,7 @@ $reviews = mysqli_query($conn, "
     <div class="navbar">
         <h2>Super Admin Dashboard</h2>
         <div>
-            <strong><?= $_SESSION['user_name']; ?></strong>
+            <strong><?= htmlspecialchars($_SESSION['user_name']); ?></strong>
             <a href="logout.php">Logout</a>
         </div>
     </div>
@@ -214,12 +242,10 @@ $reviews = mysqli_query($conn, "
                 <h3>Total Customers</h3>
                 <p><?= $total_customers; ?></p>
             </div>
-
             <div class="card">
                 <h3>Total Contractors</h3>
                 <p><?= $total_contractors; ?></p>
             </div>
-
             <div class="card">
                 <h3>Total Bookings</h3>
                 <p><?= $total_bookings; ?></p>
@@ -238,7 +264,7 @@ $reviews = mysqli_query($conn, "
             <tbody>
                 <?php while ($row = mysqli_fetch_assoc($bookings_per_contractor)): ?>
                     <tr>
-                        <td><?= $row['name']; ?></td>
+                        <td><?= htmlspecialchars($row['name']); ?></td>
                         <td><?= $row['total_bookings']; ?></td>
                     </tr>
                 <?php endwhile; ?>
@@ -258,24 +284,22 @@ $reviews = mysqli_query($conn, "
                     <th>Status</th>
                 </tr>
             </thead>
-
             <tbody>
                 <?php while ($row = mysqli_fetch_assoc($all_bookings)): ?>
                     <tr>
-                        <td><?= $row['customer_name']; ?><br><small><?= $row['customer_email']; ?></small></td>
-                        <td><?= $row['contractor_name']; ?></td>
-                        <td><?= $row['service_name']; ?></td>
-                        <td><?= $row['booking_date']; ?></td>
-                        <td><?= $row['description']; ?></td>
-                        <td class="status-<?= strtolower($row['status']); ?>"><?= ucfirst($row['status']); ?></td>
+                        <td><?= htmlspecialchars($row['customer_name']); ?><br><small><?= htmlspecialchars($row['customer_email']); ?></small></td>
+                        <td><?= htmlspecialchars($row['contractor_name']); ?></td>
+                        <td><?= htmlspecialchars($row['service_name']); ?></td>
+                        <td><?= htmlspecialchars($row['booking_date']); ?></td>
+                        <td><?= htmlspecialchars($row['description']); ?></td>
+                        <td class="status-<?= strtolower($row['status']); ?>"><?= ucfirst(htmlspecialchars($row['status'])); ?></td>
                     </tr>
                 <?php endwhile; ?>
             </tbody>
         </table>
 
-        <!-- Reviews Section -->
+        <!-- Customer Reviews -->
         <h2 class="section-title">Customer Reviews</h2>
-
         <table>
             <thead>
                 <tr>
@@ -289,19 +313,16 @@ $reviews = mysqli_query($conn, "
             <tbody>
                 <?php while ($r = mysqli_fetch_assoc($reviews)): ?>
                     <tr>
-                        <td><?= $r['customer_name']; ?></td>
-                        <td><?= $r['contractor_name']; ?></td>
-                        <td><?= str_repeat("⭐", $r['rating']); ?></td>
-                        <td><?= $r['review_text']; ?></td>
-                        <td><?= $r['created_at']; ?></td>
+                        <td><?= htmlspecialchars($r['customer_name']); ?></td>
+                        <td><?= htmlspecialchars($r['contractor_name']); ?></td>
+                        <td class="review-stars"><?= str_repeat("⭐", (int)$r['rating']); ?></td>
+                        <td><?= htmlspecialchars($r['review_text']); ?></td>
+                        <td><?= htmlspecialchars($r['created_at']); ?></td>
                     </tr>
                 <?php endwhile; ?>
             </tbody>
         </table>
-
-
     </div>
-
 </body>
 
 </html>

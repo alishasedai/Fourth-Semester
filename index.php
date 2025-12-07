@@ -73,8 +73,29 @@ $result = mysqli_query($conn, $query);
         while ($serviceRow = mysqli_fetch_assoc($servicesResult)) {
           $serviceName = htmlspecialchars($serviceRow['service_name']);
       ?>
+          <?php
+          // For each service
+          $serviceName = htmlspecialchars($serviceRow['service_name']);
+
+          // Get one contractor's work photo for this service
+          $photoQuery = "SELECT work_photos FROM contractor_details 
+               WHERE service_name = '" . mysqli_real_escape_string($conn, $serviceName) . "' 
+               AND work_photos != '' 
+               LIMIT 1";
+          $photoResult = mysqli_query($conn, $photoQuery);
+          $photo = "https://via.placeholder.com/300x230"; // default placeholder
+
+          if (mysqli_num_rows($photoResult) > 0) {
+            $photoRow = mysqli_fetch_assoc($photoResult);
+            $photos = explode(',', $photoRow['work_photos']);
+            if (!empty(trim($photos[0]))) {
+              $photo = 'uploads/' . trim($photos[0]); // first work photo
+            }
+          }
+          ?>
+
           <div class="card">
-            <img src="https://via.placeholder.com/300x230" alt="<?= $serviceName ?>">
+            <img src="<?= $photo ?>" alt="<?= $serviceName ?>">
             <div class="card-content">
               <h4><?= $serviceName ?></h4>
               <p>High-quality service for <?= $serviceName ?> by verified professionals.</p>
@@ -83,6 +104,7 @@ $result = mysqli_query($conn, $query);
               </a>
             </div>
           </div>
+
       <?php
         }
       } else {
