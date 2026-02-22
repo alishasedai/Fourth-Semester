@@ -9,18 +9,33 @@ if (!isset($_GET['id'])) {
 $contractor_id = intval($_GET['id']);
 
 // Fetch contractor details
-$query = "SELECT * FROM contractor_details WHERE user_id = $contractor_id LIMIT 1";
+$query = "
+    SELECT contractor_details.*, users.name AS contractor_name
+    FROM contractor_details
+    JOIN users ON contractor_details.user_id = users.id
+    WHERE contractor_details.user_id = $contractor_id
+    LIMIT 1
+";
 $result = mysqli_query($conn, $query);
 // Fetch total reviews and average rating
 $avgQuery = "
-    SELECT COUNT(*) AS total_reviews, AVG(rating) AS avg_rating
-    FROM reviews
-    WHERE contractor_id = $contractor_id
+    SELECT 
+        COUNT(r.id) AS total_reviews,
+        AVG(r.rating) AS avg_rating
+    FROM reviews r
+    JOIN bookings b ON r.booking_id = b.id
+    WHERE b.contractor_id = $contractor_id
 ";
+
 $avgResult = mysqli_query($conn, $avgQuery);
+if (!$avgResult) {
+    die("AVG SQL Error: " . mysqli_error($conn));
+}
+
 $avgData = mysqli_fetch_assoc($avgResult);
 $total_reviews = $avgData['total_reviews'] ?? 0;
-$avg_rating = round($avgData['avg_rating'], 1) ?? 0;
+$avg_rating = $avgData['avg_rating'] ? round($avgData['avg_rating'], 1) : 0;
+
 
 if (mysqli_num_rows($result) == 0) {
     die("Contractor not found!");
@@ -29,16 +44,34 @@ if (mysqli_num_rows($result) == 0) {
 $contractor = mysqli_fetch_assoc($result);
 
 // Fetch reviews
+// $reviewQuery = "
+//     SELECT r.*, u.name AS customer_name 
+//     FROM reviews r 
+//     JOIN users u ON r.customer_id = u.id 
+//     WHERE r.contractor_id = $contractor_id
+//     ORDER BY r.created_at DESC
+// ";
+// $reviewResult = mysqli_query($conn, $reviewQuery);
+// $can_review = false;
 $reviewQuery = "
-    SELECT r.*, u.name AS customer_name 
-    FROM reviews r 
-    JOIN users u ON r.customer_id = u.id 
-    WHERE r.contractor_id = $contractor_id
+    SELECT 
+        r.rating,
+        r.feedback,
+        r.created_at,
+        u.name AS customer_name
+    FROM reviews r
+    JOIN bookings b ON r.booking_id = b.id
+    JOIN users u ON b.customer_id = u.id
+    WHERE b.contractor_id = $contractor_id
     ORDER BY r.created_at DESC
 ";
-$reviewResult = mysqli_query($conn, $reviewQuery);
-$can_review = false;
 
+$reviewResult = mysqli_query($conn, $reviewQuery);
+if (!$reviewResult) {
+    die("Review SQL Error: " . mysqli_error($conn));
+}
+
+$can_review = false; //
 if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'customer') {
     $customer_id = $_SESSION['user_id'];
     $checkBooking = "SELECT id FROM bookings 
@@ -153,7 +186,8 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'customer') {
         <img src="<?= !empty($contractor['profile_photo']) ? 'uploads/' . $contractor['profile_photo'] : 'https://via.placeholder.com/150' ?>">
 
         <div class="profile-info">
-            <h2><?= htmlspecialchars($contractor['service_name']) ?></h2>
+            <h2><strong>Contractor Name -</strong> <?= htmlspecialchars($contractor['contractor_name']) ?></h2>
+            <h3><?= htmlspecialchars($contractor['service_name']) ?></h3>
             <p><?= htmlspecialchars($contractor['description']) ?></p>
             <p><strong>Experience:</strong> <?= $contractor['experience'] ?> years</p>
             <p><strong>Phone:</strong> <?= $contractor['phone'] ?></p>
@@ -203,7 +237,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'customer') {
             <?php while ($review = mysqli_fetch_assoc($reviewResult)) { ?>
                 <div class="review-card">
                     <h4><?= $review['customer_name'] ?> ⭐ <?= $review['rating'] ?>/5</h4>
-                    <p><?= htmlspecialchars($review['review_text']) ?></p>
+                    <p><?= htmlspecialchars($review['feedback']) ?></p>
                     <small><?= $review['created_at'] ?></small>
                 </div>
             <?php } ?>

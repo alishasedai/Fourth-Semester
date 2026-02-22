@@ -26,19 +26,11 @@ if (isset($_POST['submit'])) {
       // Insert user data
       $sql = "INSERT INTO users (name, email, role, phone, address, password)
               VALUES ('$name', '$email', '$role', '$phone', '$address', '$hashed_password')";
-
       if (mysqli_query($conn, $sql)) {
-        // ✅ Automatically log in the user
-        $_SESSION['user_id'] = mysqli_insert_id($conn);
-        $_SESSION['user_name'] = $name;
-        $_SESSION['user_role'] = $role;
-
-        // Redirect based on role
-        if ($role === 'contractor') {
-          header("Location: contractor_dashboard.php");
-        } else {
-          header("Location: customer_dashboard.php");
-        }
+        echo "<script>
+          alert('Registration successful! Please login.');
+          window.location.href='login.php';
+        </script>";
         exit();
       } else {
         echo "Error: " . mysqli_error($conn);
@@ -47,7 +39,6 @@ if (isset($_POST['submit'])) {
   }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -113,7 +104,7 @@ if (isset($_POST['submit'])) {
     </form>
   </div>
 
-  <!-- <script src="./js/validation.js"></script> -->
+  <script src="./js/validation.js"></script>
 </body>
 
 </html>

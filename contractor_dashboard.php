@@ -13,152 +13,234 @@ $result = mysqli_query($conn, $query);
 $contractor = mysqli_fetch_assoc($result);
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <title>Contractor Dashboard</title>
-  <link rel="stylesheet" href="./css/dashboard.css">
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f5f6f8;
       margin: 0;
-      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
     }
 
+    /* NAVBAR */
     .navbar {
-      background: #000;
-      padding: 15px 60px;
-      color: #fff;
+      background: #161717;
+       padding: 15px 50px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      color: white;
     }
 
     .navbar a {
       color: white;
       text-decoration: none;
-      margin-right: 20px;
+      margin-left: 20px;
       font-weight: 500;
+      transition: 0.3s;
     }
 
+    .navbar a:hover {
+      opacity: 0.8;
+    }
+
+    /* MAIN CONTAINER */
     .container {
-      max-width: 900px;
-      margin: 60px auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 40px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      max-width: 1000px;
+      margin: 50px auto;
+      padding: 0 20px;
     }
 
-    .profile {
+    /* PROFILE CARD */
+    .profile-card {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
       text-align: center;
+      margin-bottom: 30px;
+      transition: 0.3s;
     }
 
-    .profile img {
-      width: 120px;
-      height: 120px;
+    .profile-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .profile-card img {
+      width: 130px;
+      height: 130px;
       border-radius: 50%;
       object-fit: cover;
+      border: 4px solid #2a5298;
       margin-bottom: 15px;
     }
 
-    h2 {
+    .profile-card h2 {
+      margin: 10px 0;
       color: #333;
     }
 
-    .details p {
+    /* DETAILS CARD */
+    .details-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+      margin-bottom: 25px;
+    }
+
+    .details-card p {
       margin: 8px 0;
       color: #555;
     }
 
-    .services-list {
+    /* SERVICES TAGS */
+    .services-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+      margin-bottom: 25px;
+    }
+
+    .services-card h3 {
+      margin-bottom: 15px;
+    }
+
+    .service-tag {
+      display: inline-block;
+      background: #e3f2fd;
+      color: #0d47a1;
+      padding: 8px 14px;
+      border-radius: 20px;
+      margin: 5px;
+      font-size: 14px;
+    }
+
+    /* WORK GALLERY */
+    .work-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+    }
+
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
       margin-top: 15px;
-      padding: 15px;
-      background: #f8f8f8;
-      border-left: 4px solid #000;
+    }
+
+    .gallery img {
+      width: 220px;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 10px;
+      transition: 0.3s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .gallery img:hover {
+      transform: scale(1.05);
+    }
+
+    /* BUTTON */
+    .btn {
+      /* background: #161717; */
+      color: white;
+      padding: 8px 16px;
       border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      transition: 0.3s;
     }
 
-    .services-list h3 {
-      margin-bottom: 8px;
-      color: #111;
-    }
-
-    .services-list ul {
-      list-style-type: disc;
-      margin-left: 20px;
-      color: #444;
+    .btn:hover {
+      opacity: 0.85;
     }
 
     .no-data {
       text-align: center;
-      color: #666;
+      background: white;
       padding: 50px;
-    }
-
-    .btn {
-      background: #000;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 6px;
-      text-decoration: none;
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
     }
   </style>
 </head>
 
 <body>
 
-  <div class="navbar">
-    <div><strong>Welcome, <?= $_SESSION['user_name']; ?></strong></div>
-    <div>
-      <a href="contractor_add_service.php">Your Services</a>
-      <a href="edit_service.php" class="btn">Edit Details</a>
+  <?php
+  // Check if contractor already added details
+  $check_sql = "SELECT id FROM contractor_details WHERE user_id = '$user_id'";
+  $check_result = mysqli_query($conn, $check_sql);
+  $has_service = mysqli_num_rows($check_result) > 0;
+  ?>
 
-      <a href="contractor_reviews.php">Reviews</a>
+  <div class="navbar">
+    <div><strong>Welcome, <?= htmlspecialchars($_SESSION['user_name']); ?></strong></div>
+    <div>
+
+      <?php if (!$has_service): ?>
+        <!-- Show only if service NOT added -->
+        <a href="contractor_add_service.php">Your Services</a>
+      <?php endif; ?>
+
+      <?php if ($has_service): ?>
+        <!-- Show only if service ALREADY added -->
+        <a href="edit_service.php" class="btn">Edit Details</a>
+      <?php endif; ?>
+
+      <a href="contractor_review.php">Reviews</a>
       <a href="contractor_bookings.php">My Bookings</a>
       <a href="logout.php">Logout</a>
     </div>
   </div>
-
   <div class="container">
+
     <?php if ($contractor): ?>
-      <div class="profile">
+
+      <div class="profile-card">
         <img src="uploads/<?= htmlspecialchars($contractor['profile_photo']); ?>" alt="Profile Photo">
         <h2><?= htmlspecialchars($contractor['service_name']); ?></h2>
       </div>
 
-      <div class="details">
+      <div class="details-card">
+        <h3>Professional Details</h3>
         <p><strong>Experience:</strong> <?= htmlspecialchars($contractor['experience']); ?></p>
         <p><strong>Phone:</strong> <?= htmlspecialchars($contractor['phone']); ?></p>
         <p><strong>Address:</strong> <?= htmlspecialchars($contractor['address']); ?></p>
         <p><strong>Description:</strong> <?= htmlspecialchars($contractor['description']); ?></p>
       </div>
 
-      <div class="services-list">
-        <h3>Services Offered:</h3>
-        <ul>
-          <?php
-          $services = explode(',', $contractor['services']);
-          foreach ($services as $service) {
-            echo "<li>" . htmlspecialchars(trim($service)) . "</li>";
-          }
-          ?>
-        </ul>
+      <div class="services-card">
+        <h3>Services Offered</h3>
+        <?php
+        $services = explode(',', $contractor['services']);
+        foreach ($services as $service) {
+          echo '<span class="service-tag">' . htmlspecialchars(trim($service)) . '</span>';
+        }
+        ?>
       </div>
 
-      <div class="work-photo">
+      <div class="work-card">
         <h3>Sample Work</h3>
-        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
+        <div class="gallery">
           <?php
           if (!empty($contractor['work_photos'])) {
             $photos = explode(',', $contractor['work_photos']);
             foreach ($photos as $photo) {
-              if (!empty(trim($photo))) {
-                echo '<img src="uploads/' . htmlspecialchars(trim($photo)) . '" alt="Work Photo" width="200" height="150" style="object-fit:cover; border-radius:8px; border:1px solid #ddd;">';
+              $photo = trim($photo);
+              if ($photo !== '') {
+                $photoUrl = 'uploads/' . rawurlencode(basename($photo));
+                echo '<img src="' . htmlspecialchars($photoUrl) . '" alt="Work Photo">';
               }
             }
           } else {
@@ -168,13 +250,16 @@ $contractor = mysqli_fetch_assoc($result);
         </div>
       </div>
 
-
     <?php else: ?>
+
       <div class="no-data">
         <h3>You haven’t added your service details yet.</h3>
+        <br>
         <a href="contractor_add_service.php" class="btn">Add Your Service</a>
       </div>
+
     <?php endif; ?>
+
   </div>
 
 </body>

@@ -3,7 +3,7 @@ session_start();
 include './includes/db_connect.php';
 
 // Only super admin can access
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'super_admin') {
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
     exit();
 }
@@ -21,6 +21,7 @@ $bookings_per_contractor = mysqli_query($conn, "
     WHERE c.role='contractor'
     GROUP BY c.id
 ");
+
 
 // All bookings
 $all_bookings = mysqli_query($conn, "

@@ -10,7 +10,9 @@ if (isset($_POST['booking_id'], $_POST['new_status'])) {
     $booking_id = intval($_POST['booking_id']);
     $new_status = $_POST['new_status'];
 
-    if (!in_array($new_status, ['confirmed', 'rejected'])) {
+    $allowed = ['confirmed', 'rejected', 'completed'];
+
+    if (!in_array($new_status, $allowed)) {
         die("Invalid status");
     }
 

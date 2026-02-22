@@ -2,56 +2,19 @@
 session_start();
 include './includes/db_connect.php';
 
-// Check if user is logged in and is a customer
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'customer') {
+// Allow only logged-in contractors
+if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
 
-$customer_id = $_SESSION['user_id'];
-$contractor_id = isset($_GET['contractor_id']) ? intval($_GET['contractor_id']) : 0;
-
-if ($contractor_id <= 0) {
-    die("Invalid contractor specified.");
+if ($_SESSION['user_role'] !== 'contractor') {
+    die("Access denied.");
 }
 
-// Check if customer has completed a booking with this contractor
-$sql = "SELECT id FROM bookings WHERE customer_id = ? AND contractor_id = ? AND status = 'completed' LIMIT 1";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $customer_id, $contractor_id);
-$stmt->execute();
-$result = $stmt->get_result();
+$contractor_id = $_SESSION['user_id'];
 
-if ($result->num_rows === 0) {
-    die("You can only leave a review after completing a booking with this contractor.");
-}
-
-// Handle review submission
-$success_message = "";
-$error_message = "";
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $rating = isset($_POST['rating']) ? intval($_POST['rating']) : 0;
-    $comment = isset($_POST['comment']) ? trim($_POST['comment']) : "";
-
-    // Validate rating
-    if ($rating < 1 || $rating > 5) {
-        $error_message = "Please select a rating between 1 and 5.";
-    } else {
-        // Insert review
-        $insert_sql = "INSERT INTO reviews (customer_id, contractor_id, rating, comment) VALUES (?, ?, ?, ?)";
-        $insert_stmt = $conn->prepare($insert_sql);
-        $insert_stmt->bind_param("iiis", $customer_id, $contractor_id, $rating, $comment);
-
-        if ($insert_stmt->execute()) {
-            $success_message = "Thank you for your review!";
-        } else {
-            $error_message = "Error submitting your review. Please try again.";
-        }
-    }
-}
-
-// Fetch contractor info for display (optional)
+// Fetch contractor service name (optional)
 $contractor_sql = "SELECT service_name FROM contractor_details WHERE user_id = ?";
 $contractor_stmt = $conn->prepare($contractor_sql);
 $contractor_stmt->bind_param("i", $contractor_id);
@@ -59,113 +22,118 @@ $contractor_stmt->execute();
 $contractor_result = $contractor_stmt->get_result();
 $contractor = $contractor_result->fetch_assoc();
 
+// Fetch reviews for this contractor
+$review_sql = "
+    SELECT r.rating, r.feedback, r.created_at, u.name AS customer_name
+    FROM reviews r
+    JOIN users u ON r.customer_id = u.id
+    WHERE r.contractor_id = ?
+    ORDER BY r.id DESC
+";
+$review_stmt = $conn->prepare($review_sql);
+$review_stmt->bind_param("i", $contractor_id);
+$review_stmt->execute();
+$reviews = $review_stmt->get_result();
+
+// Calculate average rating
+$avg_sql = "SELECT AVG(rating) as average_rating, COUNT(*) as total_reviews FROM reviews WHERE contractor_id = ?";
+$avg_stmt = $conn->prepare($avg_sql);
+$avg_stmt->bind_param("i", $contractor_id);
+$avg_stmt->execute();
+$avg_result = $avg_stmt->get_result()->fetch_assoc();
+
+$average_rating = round($avg_result['average_rating'], 1);
+$total_reviews = $avg_result['total_reviews'];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>Leave Review for <?= htmlspecialchars($contractor['service_name'] ?? 'Contractor'); ?></title>
+    <meta charset="UTF-8">
+    <title>My Reviews</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            max-width: 800px;
             margin: 30px auto;
-            max-width: 600px;
-            background: #f9f9f9;
+            background: #f4f4f4;
             padding: 20px;
             border-radius: 10px;
         }
 
         h1 {
-            margin-bottom: 20px;
-            color: #333;
+            margin-bottom: 10px;
         }
 
-        form {
+        .summary {
+            margin-bottom: 20px;
+            padding: 15px;
             background: white;
-            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 0 5px #ccc;
         }
 
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-        }
-
-        select,
-        textarea {
-            width: 100%;
-            padding: 8px;
+        .review {
+            background: white;
+            padding: 15px;
             margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            resize: vertical;
+            border-radius: 8px;
+            box-shadow: 0 0 5px #ccc;
         }
 
-        button {
-            background-color: #007BFF;
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
+        .stars {
+            color: #f4c150;
+            font-size: 18px;
         }
 
-        button:hover {
-            background-color: #0056b3;
+        .date {
+            color: gray;
+            font-size: 13px;
         }
 
-        .message {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-        }
-
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .no-reviews {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
         }
     </style>
 </head>
 
 <body>
-    <h1>Leave a Review for <?= htmlspecialchars($contractor['service_name'] ?? 'Contractor'); ?></h1>
 
-    <?php if ($success_message): ?>
-        <div class="message success"><?= $success_message ?></div>
+    <h1>Reviews for <?= htmlspecialchars($contractor['service_name'] ?? 'Your Services'); ?></h1>
+
+    <div class="summary">
+        <strong>Average Rating:</strong>
+        <?= $total_reviews > 0 ? $average_rating . " ⭐" : "No ratings yet"; ?>
+        <br>
+        <strong>Total Reviews:</strong> <?= $total_reviews; ?>
+    </div>
+
+    <?php if ($reviews->num_rows > 0): ?>
+
+        <?php while ($row = $reviews->fetch_assoc()): ?>
+            <div class="review">
+                <strong><?= htmlspecialchars($row['customer_name']); ?></strong>
+                <div class="stars">
+                    <?= str_repeat("⭐", $row['rating']); ?>
+                </div>
+                <?php if (!empty($row['feedback'])): ?>
+                    <p><?= htmlspecialchars($row['feedback']); ?></p>
+                <?php endif; ?>
+                <div class="date">
+                    <?= htmlspecialchars($row['created_at'] ?? ''); ?>
+                </div>
+            </div>
+        <?php endwhile; ?>
+
+    <?php else: ?>
+        <div class="no-reviews">
+            You have not received any reviews yet.
+        </div>
     <?php endif; ?>
 
-    <?php if ($error_message): ?>
-        <div class="message error"><?= $error_message ?></div>
-    <?php endif; ?>
-
-    <?php if (!$success_message): ?>
-        <form method="post" action="">
-            <label for="rating">Rating (1 to 5):</label>
-            <select name="rating" id="rating" required>
-                <option value="">-- Select Rating --</option>
-                <?php for ($i = 1; $i <= 5; $i++): ?>
-                    <option value="<?= $i ?>"><?= $i ?> star<?= $i > 1 ? 's' : '' ?></option>
-                <?php endfor; ?>
-            </select>
-
-            <label for="comment">Comments (optional):</label>
-            <textarea name="comment" id="comment" rows="5" placeholder="Write your experience..."></textarea>
-
-            <button type="submit">Submit Review</button>
-        </form>
-    <?php endif; ?>
 </body>
 
 </html>

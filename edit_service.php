@@ -2,15 +2,12 @@
 session_start();
 include './includes/db_connect.php';
 
-// ✅ Restrict access to logged-in contractors
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'contractor') {
     header("Location: login.php");
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
-
-// ✅ Fetch contractor details
 $sql = "SELECT * FROM contractor_details WHERE user_id = '$user_id'";
 $result = mysqli_query($conn, $sql);
 $contractor = mysqli_fetch_assoc($result);
@@ -20,8 +17,8 @@ if (!$contractor) {
     exit();
 }
 
-// ✅ Handle form submission for update
 if (isset($_POST['update'])) {
+
     $service_name = $_POST['service_name'];
     $experience = $_POST['experience'];
     $phone = $_POST['phone'];
@@ -34,35 +31,28 @@ if (isset($_POST['update'])) {
         mkdir($target_dir, 0777, true);
     }
 
-    // Profile photo update
     if (!empty($_FILES['profile_photo']['name'])) {
         $profile_photo = basename($_FILES['profile_photo']['name']);
         move_uploaded_file($_FILES['profile_photo']['tmp_name'], $target_dir . $profile_photo);
     } else {
-        $profile_photo = $contractor['profile_photo']; // keep old photo
+        $profile_photo = $contractor['profile_photo'];
     }
 
-    // Work photos update (multiple)
     $uploaded_work_photos = [];
 
     if (!empty($_FILES['work_photos']['name'][0])) {
         foreach ($_FILES['work_photos']['tmp_name'] as $key => $tmp_name) {
             $file_name = basename($_FILES['work_photos']['name'][$key]);
-            $target_file = $target_dir . $file_name;
-
-            if (move_uploaded_file($tmp_name, $target_file)) {
+            if (move_uploaded_file($tmp_name, $target_dir . $file_name)) {
                 $uploaded_work_photos[] = $file_name;
             }
         }
-
-        // Merge old and new photos
         $all_photos = array_merge(explode(',', $contractor['work_photos']), $uploaded_work_photos);
         $work_photos_str = implode(',', $all_photos);
     } else {
         $work_photos_str = $contractor['work_photos'];
     }
 
-    // ✅ Update query
     $update_sql = "UPDATE contractor_details SET 
         service_name='$service_name',
         experience='$experience',
@@ -75,95 +65,123 @@ if (isset($_POST['update'])) {
         WHERE user_id='$user_id'";
 
     if (mysqli_query($conn, $update_sql)) {
-        echo "<script>alert('Your details have been updated successfully!'); window.location='contractor_dashboard.php';</script>";
+        echo "<script>alert('Your details updated successfully!'); window.location='contractor_dashboard.php';</script>";
     } else {
         echo "Error: " . mysqli_error($conn);
     }
 }
 ?>
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
     <meta charset="UTF-8">
-    <title>Edit Service - Contractor Dashboard</title>
+    <title>Edit Service</title>
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #f5f6f8;
             margin: 0;
-            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
         }
 
+        /* NAVBAR */
         .navbar {
-            background: #000;
-            color: #fff;
-            padding: 15px 60px;
+            background: #161717;
+            padding: 15px 50px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            color: white;
         }
 
         .navbar a {
             color: white;
             text-decoration: none;
-            margin-right: 20px;
+            margin-left: 20px;
             font-weight: 500;
         }
 
+        /* FORM CONTAINER */
         .container {
-            max-width: 800px;
+            max-width: 850px;
             margin: 50px auto;
-            background: #fff;
-            border-radius: 10px;
+            background: white;
             padding: 40px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* FORM ELEMENTS */
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
         }
 
         label {
-            display: block;
             font-weight: 600;
             margin-bottom: 6px;
+            display: block;
         }
 
         input,
         textarea {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
             border: 1px solid #ccc;
-            border-radius: 6px;
+            margin-bottom: 18px;
+            transition: 0.3s;
+            font-size: 14px;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 6px rgba(42, 82, 152, 0.2);
+            outline: none;
         }
 
         textarea {
-            resize: none;
-            height: 80px;
+            resize: vertical;
         }
 
+        /* BUTTON */
         .btn {
-            background: #000;
-            color: #fff;
-            padding: 12px 20px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 12px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            width: 100%;
             font-size: 15px;
             cursor: pointer;
-            width: 100%;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        /* IMAGE PREVIEW */
+        .preview-images {
             margin-top: 10px;
         }
 
         .photo-box {
             display: inline-block;
             position: relative;
-            margin: 5px;
+            margin: 8px;
         }
 
         .photo-box img {
-            width: 100px;
-            height: 80px;
+            width: 120px;
+            height: 90px;
             object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .delete-btn {
@@ -174,34 +192,25 @@ if (isset($_POST['update'])) {
             color: white;
             border: none;
             border-radius: 50%;
-            font-size: 12px;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             cursor: pointer;
+            font-size: 12px;
         }
 
-
-        .btn:hover {
-            background: #333;
-        }
-
-        .preview-images img {
-            width: 100px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 6px;
-            margin: 5px;
-            border: 1px solid #ccc;
+        .delete-btn:hover {
+            background: darkred;
         }
     </style>
 </head>
 
 <body>
+
     <div class="navbar">
-        <div><strong><?= $_SESSION['user_name']; ?></strong></div>
+        <div><strong><?= htmlspecialchars($_SESSION['user_name']); ?></strong></div>
         <div>
             <a href="contractor_dashboard.php">Dashboard</a>
-            <a href="logout.php">Logout</a>
+            <!-- <a href="logout.php">Logout</a> -->
         </div>
     </div>
 
@@ -209,6 +218,7 @@ if (isset($_POST['update'])) {
         <h2>Edit Your Service Details</h2>
 
         <form method="POST" enctype="multipart/form-data">
+
             <label>Service Name</label>
             <input type="text" name="service_name" value="<?= htmlspecialchars($contractor['service_name']); ?>" required>
 
@@ -222,66 +232,60 @@ if (isset($_POST['update'])) {
             <input type="text" name="address" value="<?= htmlspecialchars($contractor['address']); ?>" required>
 
             <label>Description</label>
-            <textarea name="description" required><?= htmlspecialchars($contractor['description']); ?></textarea>
+            <textarea name="description" rows="3" required><?= htmlspecialchars($contractor['description']); ?></textarea>
 
-            <label>Services Offered</label>
-            <textarea name="services" required><?= htmlspecialchars($contractor['services']); ?></textarea>
+            <label>Services Offered (comma separated)</label>
+            <textarea name="services" rows="2" required><?= htmlspecialchars($contractor['services']); ?></textarea>
 
-            <label>Profile Photo (optional)</label>
+            <label>Profile Photo</label>
             <input type="file" name="profile_photo" accept="image/*">
             <div class="preview-images">
-                <p>Current Profile:</p>
-                <img src="uploads/<?= htmlspecialchars($contractor['profile_photo']); ?>" alt="Profile Photo">
+                <img src="uploads/<?= htmlspecialchars($contractor['profile_photo']); ?>" width="120">
             </div>
 
-            <label>Add More Work Photos (optional)</label>
-            <input type="file" name="work_photos[]" accept="image/*" multiple>
+            <label>Add More Work Photos</label>
+            <input type="file" name="work_photos[]" multiple accept="image/*">
+
             <div class="preview-images">
-                <p>Existing Work Photos:</p>
-                <div id="work-photos-container">
-                    <?php
-                    $existing_photos = explode(',', $contractor['work_photos']);
-                    foreach ($existing_photos as $photo) {
-                        if (!empty($photo)) {
-                            echo '
-                <div class="photo-box">
-                    <img src="uploads/' . htmlspecialchars(trim($photo)) . '" alt="Work Photo">
-                    <button type="button" class="delete-btn" data-photo="' . htmlspecialchars(trim($photo)) . '">❌</button>
-                </div>';
-                        }
+                <?php
+                $existing_photos = explode(',', $contractor['work_photos']);
+                foreach ($existing_photos as $photo) {
+                    if (!empty($photo)) {
+                        echo '<div class="photo-box">
+                <img src="uploads/' . htmlspecialchars(trim($photo)) . '">
+                <button type="button" class="delete-btn" data-photo="' . htmlspecialchars(trim($photo)) . '">×</button>
+              </div>';
                     }
-                    ?>
-                </div>
+                }
+                ?>
             </div>
 
+            <button type="submit" name="update" class="btn">Save Changes</button>
 
-            <button type="submit" class="btn" name="update">Save Changes</button>
         </form>
     </div>
+
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            document.querySelectorAll(".delete-btn").forEach(btn => {
-                btn.addEventListener("click", function() {
-                    const photoName = this.dataset.photo;
-                    if (confirm("Are you sure you want to delete this photo?")) {
-                        fetch("delete_photo.php", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/x-www-form-urlencoded"
-                                },
-                                body: "photo=" + encodeURIComponent(photoName)
-                            })
-                            .then(res => res.text())
-                            .then(data => {
-                                if (data.includes("Deleted")) {
-                                    this.parentElement.remove(); // remove photo from UI
-                                    alert("Photo deleted successfully!");
-                                } else {
-                                    alert("Error: " + data);
-                                }
-                            });
-                    }
-                });
+        document.querySelectorAll(".delete-btn").forEach(btn => {
+            btn.addEventListener("click", function() {
+                const photoName = this.dataset.photo;
+                if (confirm("Delete this photo?")) {
+                    fetch("delete_photo.php", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            },
+                            body: "photo=" + encodeURIComponent(photoName)
+                        })
+                        .then(res => res.text())
+                        .then(data => {
+                            if (data.includes("Deleted")) {
+                                this.parentElement.remove();
+                            } else {
+                                alert("Error deleting photo");
+                            }
+                        });
+                }
             });
         });
     </script>

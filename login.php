@@ -2,7 +2,7 @@
 session_start();
 include "./includes/db_connect.php";
 
-// 🚫 Remove any redirect check here — we handle it only after successful login.
+
 
 // Handle login form
 if (isset($_POST['submit'])) {
@@ -21,11 +21,12 @@ if (isset($_POST['submit'])) {
       $user = $result->fetch_assoc();
 
       if (password_verify($password, $user['password'])) {
+    
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['name'];
-        $_SESSION['user_role'] = $user['role']; // make sure your column name is 'role'
-        $_SESSION['role'] = $user['role']; // for compatibility with other files
-
+        //$_SESSION['user_role'] = $user['role']; // make sure your column name is 'role'
+        $_SESSION['user_role'] = $user['role']; // for compatibility with other files
+        
         // Redirect after login if set
         if (isset($_SESSION['redirect_after_login'])) {
           $redirect_url = $_SESSION['redirect_after_login'];
@@ -40,7 +41,7 @@ if (isset($_POST['submit'])) {
           } elseif ($user['role'] === 'contractor') {
             header("Location: contractor_dashboard.php"); // Contractor dashboard
             exit();
-          } elseif ($user['role'] === 'super_admin') {
+          } elseif ($user['role'] === 'admin') {
             header("Location: super_admin_dashboard.php"); // Super Admin dashboard
             exit();
           } else {
@@ -72,18 +73,18 @@ if (isset($_POST['submit'])) {
   <div class="container">
     <button class="back-btn"><a href="index.php">← Back To Home</a></button>
 
-    <form class="form-box" method="POST" action="" onsubmit="validateLoginForm(event)">
+    <form class="form-box" method="POST" action="" onsubmit="validateLoginForm(event)" autocomplete="off">
       <h2>Welcome Back</h2>
       <p class="subtitle">Sign in to your Gypsum Services account</p>
 
       <label>Email</label>
       <div class="input-box">
-        <input type="email" placeholder="Enter your Email" name="email" required>
+        <input type="email" placeholder="Enter your Email" name="email" autocomplete="off" required>
       </div>
 
       <label>Password</label>
       <div class="input-box">
-        <input type="password" placeholder="Enter your Password" name="password" required>
+        <input type="password" placeholder="Enter your Password" name="password" autocomplete="off" required>
       </div>
 
       <button type="submit" class="main-btn" name="submit">Sign In</button>

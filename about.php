@@ -9,105 +9,235 @@ session_start();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About Our Contractors</title>
+  <title>About Us - Gypsum Services</title>
   <link rel="stylesheet" href="./css/style.css">
-  <link rel="stylesheet" href="./css/about.css">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      background: #f9fafb;
+      color: #222;
+    }
+
+    .about-hero {
+      background: linear-gradient(135deg, #111, #333);
+      color: white;
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .about-hero h1 {
+      font-size: 36px;
+      margin-bottom: 15px;
+    }
+
+    .about-hero p {
+      font-size: 18px;
+      opacity: 0.9;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .about-container {
+      max-width: 1100px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+
+    .section {
+      margin-bottom: 70px;
+    }
+
+    .section h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 26px;
+      position: relative;
+    }
+
+    .section h2::after {
+      content: '';
+      width: 60px;
+      height: 3px;
+      background: #000;
+      display: block;
+      margin: 10px auto 0;
+      border-radius: 3px;
+    }
+
+    .section p {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+      color: #555;
+      font-size: 16px;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
+
+    .card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      transition: 0.3s ease;
+      text-align: center;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .card h3 {
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .features-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .feature-item {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      border: 1px solid #eee;
+      transition: 0.3s;
+    }
+
+    .feature-item:hover {
+      background: #000;
+      color: #fff;
+    }
+
+    .feature-item:hover p {
+      color: #ddd;
+    }
+
+    .feature-item h4 {
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 
 <body>
+
   <?php include('./includes/header.php'); ?>
-
-  <!-- mainSection start -->
-  <section class="contractors-section">
-    <h2>Find Expert Contractors</h2>
-    <p>Connect with verified ceiling specialists in your area</p>
-
-    <div class="contractor-grid">
-      <?php
-      // Fetch all contractors
-      $sql = "SELECT cd.*, u.name AS contractor_name
-              FROM contractor_details cd
-              JOIN users u ON cd.user_id = u.id
-              ORDER BY cd.created_at DESC";
-      $result = mysqli_query($conn, $sql);
-
-      if (mysqli_num_rows($result) > 0):
-          while ($row = mysqli_fetch_assoc($result)):
-
-              $contractor_id = $row['user_id'];
-
-              // Fetch review info
-              $reviewQuery = "SELECT COUNT(*) AS total_reviews, AVG(rating) AS avg_rating
-                              FROM reviews
-                              WHERE contractor_id = $contractor_id";
-              $reviewResult = mysqli_query($conn, $reviewQuery);
-              $reviewData = mysqli_fetch_assoc($reviewResult);
-              $total_reviews = $reviewData['total_reviews'] ?? 0;
-              $avg_rating = $reviewData['avg_rating'] ? round($reviewData['avg_rating'], 1) : 0;
-
-              // Work photos
-              $work_photos = !empty($row['work_photos']) ? explode(',', $row['work_photos']) : [];
-      ?>
-
-      <!-- Contractor Card -->
-      <div class="contractor-card">
-        <img src="uploads/<?= htmlspecialchars($row['profile_photo']) ?>" alt="Contractor" class="profile-img">
-        <h3><?= htmlspecialchars($row['contractor_name']) ?></h3>
-
-        <!-- Dynamic Rating -->
-        <div class="rating">
-          <?php
-          for ($i = 1; $i <= 5; $i++) {
-              if ($i <= floor($avg_rating)) {
-                  echo "⭐";
-              } elseif ($i - $avg_rating < 1) {
-                  echo "✰"; // half star
-              } else {
-                  echo "☆"; // empty star
-              }
-          }
-          ?>
-          <span><?= $avg_rating ?></span>
-          <small><?= $total_reviews ?> review<?= $total_reviews != 1 ? 's' : '' ?></small>
-        </div>
-
-        <p><?= htmlspecialchars($row['description']) ?></p>
-
-        <div class="work-images">
-          <?php
-          if (!empty($work_photos)) {
-              foreach ($work_photos as $photo) {
-                  $photo = trim($photo);
-                  if ($photo != '') {
-                      echo '<img src="uploads/' . htmlspecialchars($photo) . '" alt="Work Image">';
-                  }
-              }
-          } else {
-              echo '<p style="color:#888; font-size:13px;">No project photos uploaded yet.</p>';
-          }
-          ?>
-        </div>
-
-        <div class="buttons">
-          <button class="view-profile">
-            <a href="contractor_profile.php?id=<?= $row['user_id'] ?>" style="color:#fff; text-decoration:none;">View Profile</a>
-          </button>
-          <button class="contact">
-            <a href="booking.php?contractor_id=<?= $row['user_id'] ?>" style="color:#333; text-decoration:none;">Contact</a>
-          </button>
-        </div>
-      </div>
-
-      <?php
-          endwhile;
-      else:
-          echo "<p style='text-align:center; color:#777;'>No contractors available yet.</p>";
-      endif;
-      ?>
-    </div>
+<div class="container">
+  <!-- Hero Section -->
+  <section class="about-hero">
+    <h1>Building Better Ceilings, Building Better Connections</h1>
+    <p>
+      Gypsum Services connects customers with trusted and verified ceiling contractors
+      to deliver modern, reliable, and high-quality gypsum solutions.
+    </p>
   </section>
 
+  <div class="about-container">
+
+    <!-- Mission Section -->
+    <div class="section">
+      <h2>Our Mission</h2>
+      <p>
+        Our mission is to simplify the process of finding skilled gypsum contractors
+        by providing a secure and transparent platform where quality meets trust.
+      </p>
+    </div>
+
+    <!-- Services Cards -->
+    <div class="section">
+      <h2>What We Offer</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3>Gypsum False Ceiling</h3>
+          <p>Modern and stylish ceiling designs for homes and offices.</p>
+        </div>
+
+        <div class="card">
+          <h3>POP Ceiling Designs</h3>
+          <p>Creative plaster designs that enhance interior aesthetics.</p>
+        </div>
+
+        <div class="card">
+          <h3>Ceiling Repair</h3>
+          <p>Fix cracks, damages, and structural ceiling issues efficiently.</p>
+        </div>
+
+        <div class="card">
+          <h3>Partition Work</h3>
+          <p>Professional gypsum partition solutions for offices and homes.</p>
+        </div>
+
+        <div class="card">
+          <h3>Cove Lighting</h3>
+          <p>Elegant cove lighting solutions for a modern and luxurious look.</p>
+        </div>
+
+        <div class="card">
+          <h3>Soundproof Ceiling</h3>
+          <p>Acoustic ceiling solutions for noise reduction and comfort.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Why Choose Us -->
+    <div class="section">
+      <h2>Why Choose Us</h2>
+
+      <div class="features-list">
+        <div class="feature-item">
+          <h4>Verified Contractors</h4>
+          <p>Only trusted professionals with verified profiles.</p>
+        </div>
+
+        <div class="feature-item">
+          <h4>Transparent Reviews</h4>
+          <p>Honest ratings from real customers.</p>
+        </div>
+
+        <div class="feature-item">
+          <h4>Easy Booking</h4>
+          <p>Simple and fast contractor booking process.</p>
+        </div>
+
+        <div class="feature-item">
+          <h4>Secure Platform</h4>
+          <p>Your data and transactions are safe with us.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vision -->
+    <div class="section">
+      <h2>Our Vision</h2>
+      <p>
+        To become the most trusted digital platform for gypsum and ceiling services,
+        empowering both customers and contractors through innovation and reliability.
+      </p>
+    </div>
+
+  </div>
+  </div>
   <?php include('./includes/footer.php'); ?>
+
 </body>
 
 </html>

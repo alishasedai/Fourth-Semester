@@ -41,7 +41,22 @@ if (isset($_POST['book'])) {
     $time = $_POST['time'];
     $booking_date = date('Y-m-d H:i:s', strtotime("$date $time"));
 
-    // Insert booking safely
+    // Prevent double booking for same contractor & time
+    $check_sql = "SELECT COUNT(*) as count 
+                  FROM bookings 
+                  WHERE contractor_id = ? AND booking_date = ? AND status != 'cancelled'";
+    $stmt_check = $conn->prepare($check_sql);
+    $stmt_check->bind_param("is", $contractor_id, $booking_date);
+    $stmt_check->execute();
+    $result_check = $stmt_check->get_result();
+    $row_check = $result_check->fetch_assoc();
+
+    if ($row_check['count'] > 0) {
+        echo "<script>alert('This time slot is already booked. Please choose another time.'); window.history.back();</script>";
+        exit();
+    }
+
+    // Insert booking
     $insert_sql = "INSERT INTO bookings 
                    (customer_id, contractor_id, service_name, address, description, booking_date, status, created_at) 
                    VALUES (?, ?, ?, ?, ?, ?, 'pending', NOW())";

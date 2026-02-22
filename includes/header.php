@@ -7,7 +7,12 @@ include './includes/db_connect.php';
 
 // For notification of pending bookings (optional)
 $pending_count = 0;
-if (isset($_SESSION['user_id']) && $_SESSION['user_role'] === 'customer') {
+if (
+    isset($_SESSION['user_id']) &&
+    isset($_SESSION['user_role']) &&
+    $_SESSION['user_role'] === 'customer'
+) {
+
     $customer_id = $_SESSION['user_id'];
     $sql = "SELECT COUNT(*) AS count FROM bookings WHERE customer_id=? AND status='pending'";
     $stmt = $conn->prepare($sql);
@@ -23,7 +28,7 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_role'] === 'customer') {
 <link rel="stylesheet" href="./css/style.css">
 <nav>
     <div class="logo">
-        <a href="index.php"><img src="images/LOGO.jpg" alt="Logo" /></a>
+        <a href="index.php"><img src="images/logo.png" alt="Logo" /></a>
     </div>
 
     <div class="nav-links">
@@ -34,7 +39,8 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_role'] === 'customer') {
     </div>
 
     <div class="buttons bt">
-        <?php if (isset($_SESSION['user_id'])): ?>
+        <?php if (isset($_SESSION['user_id']) && isset($_SESSION['user_role'])): ?>
+
             <?php if ($_SESSION['user_role'] === 'customer'): ?>
                 <div class="customers">
                     <a href="customer_bookings.php" class="btn-notify">
@@ -45,12 +51,14 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_role'] === 'customer') {
                     </a>
                     <a href="logout.php" class="logout-btn">Logout</a>
                 </div>
+
             <?php elseif ($_SESSION['user_role'] === 'contractor'): ?>
                 <div class="contractors">
                     <a href="contractor_dashboard.php">Dashboard</a>
                     <a href="logout.php" class="logout-btn">Logout</a>
                 </div>
             <?php endif; ?>
+
         <?php else: ?>
             <div class="default">
                 <a href="login.php" class="login-btn">Login</a>
@@ -58,6 +66,7 @@ if (isset($_SESSION['user_id']) && $_SESSION['user_role'] === 'customer') {
             </div>
         <?php endif; ?>
     </div>
+
 </nav>
 
 <style>

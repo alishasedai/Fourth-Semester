@@ -11,14 +11,14 @@ if (isset($_POST['submit_review'], $_POST['booking_id'], $_POST['contractor_id']
     $booking_id = intval($_POST['booking_id']);
     $contractor_id = intval($_POST['contractor_id']);
     $rating = intval($_POST['rating']);
-    $comment = mysqli_real_escape_string($conn, $_POST['comment'] ?? '');
+    $feedback = mysqli_real_escape_string($conn, $_POST['feedback'] ?? '');
 
     // Check rating validity
     if ($rating < 1 || $rating > 5) die("Invalid rating");
 
     // Insert review
-    $stmt = $conn->prepare("INSERT INTO reviews (booking_id, contractor_id, customer_id, rating, comment) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("iiiis", $booking_id, $contractor_id, $customer_id, $rating, $comment);
+    $stmt = $conn->prepare("INSERT INTO reviews (booking_id, contractor_id, customer_id, rating, feedback) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("iiiis", $booking_id, $contractor_id, $customer_id, $rating, $feedback);
     if ($stmt->execute()) {
         header("Location: customer_bookings.php?review_submitted=1");
         exit();

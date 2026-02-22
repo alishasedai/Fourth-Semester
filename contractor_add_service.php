@@ -8,9 +8,25 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'contractor') {
     exit();
 }
 
+$user_id = $_SESSION['user_id'];
+
+/* ---------------------------------------------------
+   ✅ CHECK IF CONTRACTOR ALREADY ADDED SERVICE
+---------------------------------------------------- */
+$check_sql = "SELECT id FROM contractor_details WHERE user_id = '$user_id'";
+$check_result = mysqli_query($conn, $check_sql);
+
+if (mysqli_num_rows($check_result) > 0) {
+    // Already added → redirect to edit page
+    header("Location: edit_service.php");
+    exit();
+}
+
+/* ---------------------------------------------------
+   ✅ HANDLE FORM SUBMISSION
+---------------------------------------------------- */
 if (isset($_POST['submit'])) {
 
-    $user_id = $_SESSION['user_id'];
     $service_name = $_POST['service_name'];
     $experience = $_POST['experience'];
     $phone = $_POST['phone'];
@@ -18,40 +34,26 @@ if (isset($_POST['submit'])) {
     $description = $_POST['description'];
     $services = $_POST['services'];
 
-    // Upload directory
     $target_dir = "uploads/";
     if (!file_exists($target_dir)) {
         mkdir($target_dir, 0777, true);
     }
 
-    // ---------------------------------------------------------------
-    // 1️⃣ Upload PROFILE PHOTO
-    // ---------------------------------------------------------------
+    // Upload profile photo
     $profile_photo = "";
     if (!empty($_FILES['profile_photo']['name'])) {
-
         $profile_name = time() . "_" . basename($_FILES['profile_photo']['name']);
         $target_profile = $target_dir . $profile_name;
-
-        if (move_uploaded_file($_FILES['profile_photo']['tmp_name'], $target_profile)) {
-            $profile_photo = $profile_name;
-        } else {
-            echo "<script>alert('Profile photo upload failed');</script>";
-        }
+        move_uploaded_file($_FILES['profile_photo']['tmp_name'], $target_profile);
+        $profile_photo = $profile_name;
     }
 
-    // ---------------------------------------------------------------
-    // 2️⃣ Upload MULTIPLE WORK PHOTOS
-    // ---------------------------------------------------------------
+    // Upload multiple work photos
     $uploaded_work_photos = [];
-
     if (!empty($_FILES['work_photos']['name'][0])) {
-
         foreach ($_FILES['work_photos']['tmp_name'] as $key => $tmp_name) {
-
             $file_name = time() . "_" . basename($_FILES['work_photos']['name'][$key]);
             $target_file = $target_dir . $file_name;
-
             if (move_uploaded_file($tmp_name, $target_file)) {
                 $uploaded_work_photos[] = $file_name;
             }
@@ -60,109 +62,100 @@ if (isset($_POST['submit'])) {
 
     $work_photos_str = implode(",", $uploaded_work_photos);
 
-    // ---------------------------------------------------------------
-    // 3️⃣ Insert Data Into Database
-    // ---------------------------------------------------------------
     $sql = "INSERT INTO contractor_details 
-            (user_id, service_name, experience, phone, address, description, services, profile_photo, work_photos)
-            VALUES 
-            ('$user_id', '$service_name', '$experience', '$phone', '$address', '$description', '$services', '$profile_photo', '$work_photos_str')";
+        (user_id, service_name, experience, phone, address, description, services, profile_photo, work_photos)
+        VALUES 
+        ('$user_id', '$service_name', '$experience', '$phone', '$address', '$description', '$services', '$profile_photo', '$work_photos_str')";
 
-    $result = mysqli_query($conn, $sql);
-
-    if ($result) {
-        echo "<script>alert('Your service details have been added successfully!'); 
-        window.location='contractor_dashboard.php';</script>";
+    if (mysqli_query($conn, $sql)) {
+        echo "<script>
+            alert('Service details added successfully!');
+            window.location='contractor_dashboard.php';
+        </script>";
     } else {
         echo "Error: " . mysqli_error($conn);
     }
 }
 ?>
 
-?>
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
     <meta charset="UTF-8">
-    <title>Add Service - Contractor Dashboard</title>
-    <link rel="stylesheet" href="./css/dashboard.css">
+    <title>Add Service</title>
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f6f8;
             margin: 0;
-            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f6f9;
         }
 
         .navbar {
-            background: #000;
-            padding: 15px 60px;
-            color: #fff;
+            background:#000000;
+            padding: 15px 50px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            color: white;
         }
 
         .navbar a {
             color: white;
             text-decoration: none;
-            margin-right: 20px;
-            font-weight: 500;
+            margin-left: 20px;
         }
 
         .container {
             max-width: 800px;
             margin: 60px auto;
-            background: #fff;
-            border-radius: 10px;
+            background: white;
             padding: 40px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         }
 
         h2 {
             text-align: center;
-            margin-bottom: 20px;
-            color: #333;
+            margin-bottom: 25px;
         }
 
-        form label {
+        label {
             font-weight: 600;
             display: block;
             margin-bottom: 6px;
-            color: #333;
         }
 
-        form input,
-        form textarea {
+        input,
+        textarea {
             width: 100%;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 12px;
+            border-radius: 8px;
             border: 1px solid #ccc;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #2a5298;
             outline: none;
         }
 
-        form textarea {
-            resize: none;
-            height: 80px;
-        }
-
         .btn {
-            background: #000;
-            color: #fff;
-            padding: 12px 20px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 12px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            width: 100%;
             font-size: 15px;
             cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
+            transition: 0.3s;
         }
 
         .btn:hover {
-            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
         }
     </style>
 </head>
@@ -170,7 +163,7 @@ if (isset($_POST['submit'])) {
 <body>
 
     <div class="navbar">
-        <div><strong><?= $_SESSION['user_name']; ?></strong></div>
+        <div><strong><?= htmlspecialchars($_SESSION['user_name']); ?></strong></div>
         <div>
             <a href="contractor_dashboard.php">Dashboard</a>
             <a href="logout.php">Logout</a>
@@ -181,33 +174,33 @@ if (isset($_POST['submit'])) {
         <h2>Add Your Service Details</h2>
 
         <form method="POST" enctype="multipart/form-data">
+
             <label>Service Name</label>
-            <input type="text" name="service_name" placeholder="e.g. Luxury Ceiling Design" required>
+            <input type="text" name="service_name" required>
 
-            <label>Experience (in years)</label>
-            <input type="text" name="experience" placeholder="e.g. 5 years" required>
+            <label>Experience</label>
+            <input type="text" name="experience" required>
 
-            <label>Phone Number</label>
-            <input type="tel" name="phone" placeholder="Enter your phone number" required>
+            <label>Phone</label>
+            <input type="text" name="phone" required>
 
             <label>Address</label>
-            <input type="text" name="address" placeholder="Enter your address" required>
+            <input type="text" name="address" required>
 
             <label>Description</label>
-            <textarea name="description" placeholder="Briefly describe your work" required></textarea>
+            <textarea name="description" required></textarea>
 
             <label>Services Offered (comma separated)</label>
-            <textarea name="services" placeholder="e.g. Gypsum Ceiling, POP Work, 2x2 Board, Lighting"
-                required></textarea>
+            <textarea name="services" required></textarea>
 
             <label>Profile Photo</label>
             <input type="file" name="profile_photo" accept="image/*" required>
 
-            <label>Work Sample Photos</label>
-            <input type="file" name="work_photos[]" accept="image/*" multiple required>
+            <label>Work Photos</label>
+            <input type="file" name="work_photos[]" multiple accept="image/*" required>
 
+            <button type="submit" name="submit" class="btn">Save Details</button>
 
-            <button type="submit" class="btn" name="submit">Save Details</button>
         </form>
     </div>
 

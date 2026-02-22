@@ -12,7 +12,12 @@
       color: #000;
       overflow-x: hidden;
     }
-
+     .container {
+      width: 80%;
+     
+      margin: 0 auto;
+      max-width: 1400px;
+    }
     /* Navbar */
     nav {
       width: 100%;
@@ -257,7 +262,7 @@
     }
     .contractor-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(2, 1fr);;
     gap: 25px;
     padding: 20px;
 }
@@ -309,7 +314,7 @@
 .view-btn {
     margin-top: 10px;
     width: 100%;
-    background: #007bff;
+    background: #000000;
     color: white;
     padding: 10px 0;
     border: none;
@@ -319,7 +324,7 @@
 }
 
 .view-btn:hover {
-    background: #0056b3;
+    background: #414242;
 }
 
     .customer-grid {

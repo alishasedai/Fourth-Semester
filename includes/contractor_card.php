@@ -9,10 +9,21 @@ if (!isset($row)) return;
 $contractor_id = $row['user_id'];
 $rating_sql = "SELECT AVG(rating) AS avg_rating, COUNT(*) AS total_reviews 
                FROM reviews WHERE contractor_id = $contractor_id";
+
 $rating_result = mysqli_query($conn, $rating_sql);
-$rating_data = mysqli_fetch_assoc($rating_result);
-$avg_rating = round($rating_data['avg_rating'], 1) ?: 0;
-$total_reviews = $rating_data['total_reviews'] ?: 0;
+
+if ($rating_result) {
+    $rating_data = mysqli_fetch_assoc($rating_result);
+    $avg_rating = round($rating_data['avg_rating'], 1) ?: 0;
+    $total_reviews = $rating_data['total_reviews'] ?: 0;
+} else {
+    // fallback if query fails
+    $avg_rating = 0;
+    $total_reviews = 0;
+    // optional: log error
+    error_log("Rating SQL Error: " . mysqli_error($conn) . " | SQL: $rating_sql");
+}
+
 ?>
 
 <div class="contractor-card">
@@ -48,7 +59,9 @@ $total_reviews = $rating_data['total_reviews'] ?: 0;
     <?php if (!empty($show_buttons)): ?>
         <div class="card-buttons">
             <button class="view"><a href="contractor_profile.php?id=<?= $row['user_id'] ?>">View Profile</a></button>
-            <button class="contact"><a href="booking.php?contractor_id=<?= $row['user_id'] ?>&service=<?= urlencode($row['service_name']) ?>">Book Now</a></button>
+            <button class="contact">
+                <a href="booking.php?contractor_id=<?= $row['user_id'] ?>" style="color:#333; text-decoration:none;">Contact</a>
+            </button>
         </div>
     <?php endif; ?>
 </div>
